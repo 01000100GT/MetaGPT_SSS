@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from typing import List, Optional
+from pydantic import Field
 
 from src.multiagent.environment.environment import Environment
 from src.multiagent.roles.role import Role
@@ -11,14 +12,16 @@ from src.multiagent.actions.llm_chat_action import LLMChatAction
 logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
 
+
 class ChatAction(LLMChatAction):
     """聊天动作"""
     name: str = "Chat"
     desc: str = "与用户进行对话"
+    # 添加role字段声明
+    role: Optional[Role] = Field(default=None, description="关联的角色")
 
     def __init__(self):
         super().__init__()
-        self.role: Optional[Role] = None
 
     # 聊天模板
     prompt_template: str = """
