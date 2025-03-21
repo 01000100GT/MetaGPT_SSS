@@ -264,7 +264,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             actions: list of Action classes or instances
         """
         self._reset()
+        print("actions: ", actions)
         for action in actions:
+            print("for actions: ", actions)
             if not isinstance(action, Action):
                 i = action(context=self.context)
             else:
@@ -516,6 +518,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""
+        # REACT 思考执行模式 
+        # BY_ORDER 按顺序执行模式
+        # PLAN_AND_ACT 规划执行模式
         if self.rc.react_mode == RoleReactMode.REACT or self.rc.react_mode == RoleReactMode.BY_ORDER:
             rsp = await self._react()
         elif self.rc.react_mode == RoleReactMode.PLAN_AND_ACT:
@@ -543,6 +548,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             if not msg.cause_by:
                 msg.cause_by = UserRequirement
             self.put_message(msg)
+        # 先观察，如果没有触发，则退出
         if not await self._observe():
             # If there is no new information, suspend and wait
             logger.debug(f"{self._setting}: no news. waiting.")

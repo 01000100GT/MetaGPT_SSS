@@ -7,7 +7,7 @@ from sparkai.core.messages.base import BaseMessage
 from sparkai.core.messages.human import HumanMessage
 from sparkai.core.messages.system import SystemMessage
 from sparkai.core.outputs.llm_result import LLMResult
-from sparkai.llm.llm import ChatSparkLLM
+from sparkai.llm.llm import ChatSparkLLM 
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.const import USE_CONFIG_TIMEOUT
