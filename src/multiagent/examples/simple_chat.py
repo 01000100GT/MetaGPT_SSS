@@ -104,6 +104,8 @@ class SimpleChat:
         async def message_handler(message: Message):
             if message.sent_from == self.assistant.name:
                 assistant_replies.append(message)
+                # 添加日志，帮助调试
+                logger.debug(f"收到AI助手回复: {message.context[:50]}...")
 
         # 订阅AI助手的消息
         await self.environment.subscribe(self.assistant.name, message_handler)
@@ -111,9 +113,11 @@ class SimpleChat:
         # 启动环境消息处理
         env_task = asyncio.create_task(self.environment.run())
 
-        # 启动AI助手
-        assistant_task = asyncio.create_task(
-            self.assistant.run(with_message="你好，我是AI助手，有什么可以帮助你的？"))
+        # 启动AI助手并等待初始消息处理完成
+        initial_message = "你好，我是AI助手，有什么可以帮助你的？"
+        await self.assistant.run(with_message=initial_message)
+        # 等待初始消息显示
+        await asyncio.sleep(1)
 
         try:
             # 主聊天循环
@@ -128,7 +132,7 @@ class SimpleChat:
                 user_input = input("\n用户: ")
 
                 # 检查退出条件
-                if user_input.lower() in ['退出', 'exit', 'quit']:
+                if user_input.lower() in ['/退出', '/exit', '/Exit', '/quit', '/Quit', '/bye', '/Bye', '/goodbye', '/Goodbye']:
                     break
 
                 # 发布用户消息
@@ -139,15 +143,23 @@ class SimpleChat:
                     cause_by="user_message"
                 ))
 
-                # 等待AI助手处理
-                await asyncio.sleep(0.5)  # 增加等待时间，确保有足够时间处理消息
+                # 等待AI助手处理 - 使用更智能的等待机制
+                wait_count = 0
+                max_wait = 20  # 最多等待10秒
+                while wait_count < max_wait and not assistant_replies:
+                    await asyncio.sleep(1.5)
+                    wait_count += 1
+
+                # 如果等待超时，提示用户
+                if wait_count >= max_wait and not assistant_replies:
+                    print("\nAI助手: [似乎没有收到回复，可能需要检查LLM连接]")
 
         except KeyboardInterrupt:
             print("\n聊天已中断")
         finally:
             # 取消任务
             env_task.cancel()
-            assistant_task.cancel()
+            # assistant_task.cancel()
             print("\n=== 聊天系统已关闭 ===")
 
 

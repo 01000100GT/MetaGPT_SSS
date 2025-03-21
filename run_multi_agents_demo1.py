@@ -14,6 +14,34 @@ from pathlib import Path
 # 添加项目根目录到Python路径
 sys.path.append(str(Path(__file__).parent))
 
+# 检查配置文件
+
+
+def check_config():
+    """检查LLM配置文件是否存在"""
+    config_path = Path.home() / ".metagpt" / "config2.yaml"
+    if not config_path.exists():
+        print(f"警告: 配置文件不存在: {config_path}")
+        print("请创建配置文件或使用示例配置")
+
+        # 检查示例配置
+        example_config = Path(__file__).parent / \
+            "config" / "config2.example.yaml"
+        if example_config.exists():
+            # 创建目录
+            config_dir = Path.home() / ".metagpt"
+            config_dir.mkdir(exist_ok=True)
+
+            # 复制示例配置
+            import shutil
+            shutil.copy(example_config, config_path)
+            print(f"已复制示例配置到: {config_path}")
+            return True
+        else:
+            print(f"示例配置也不存在: {example_config}")
+            return False
+    return True
+
 
 def setup_logging(level=logging.INFO):
     """设置日志级别"""
@@ -64,8 +92,13 @@ async def run_software_dev(requirement: str):
 
 async def run_simple_chat():
     """运行简单聊天示例"""
-    chat = SimpleChat()
-    await chat.start()
+    try:
+        chat = SimpleChat()
+        await chat.start()
+    except Exception as e:
+        print(f"\n聊天系统出错: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 
 async def main():
@@ -85,6 +118,10 @@ async def main():
     # 设置日志级别
     log_level = logging.DEBUG if args.debug else logging.INFO
     setup_logging(log_level)
+
+    # 检查配置文件
+    if not check_config():
+        print("配置文件检查失败，程序可能无法正常运行")
 
     # 根据模式运行不同示例
     if args.mode == "dev":
